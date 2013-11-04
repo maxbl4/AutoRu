@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Crawler.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Model\CachedContent.cs" />
     <Compile Include="Model\DownloadTask.cs" />
