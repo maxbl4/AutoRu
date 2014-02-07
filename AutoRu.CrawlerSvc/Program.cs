@@ -12,8 +12,15 @@ namespace AutoRu.CrawlerSvc
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        static void Main(string[] args)
         {
+            if (args.Contains("--console"))
+            {
+                new CrawlerService().Start();
+                Console.WriteLine("Started in console mode, press enter to close.");
+                Console.ReadLine();
+                return;
+            }
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[] 
             { 
