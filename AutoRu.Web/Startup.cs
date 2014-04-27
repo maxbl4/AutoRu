@@ -14,7 +14,6 @@ namespace AutoRu.Web
         public void Configuration(IAppBuilder app)
         {
             ConfigureAuth(app);
-            Global.Initialize("mongodb://mx2");
         }
     }
 }

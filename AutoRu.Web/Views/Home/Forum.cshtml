@@ -1,0 +1,41 @@
+﻿@model System.Collections.Generic.List<AutoRu.Common.Model.Post>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@ViewBag.ForumId</title>
+        <style type="text/css">
+            .message-container{
+                margin: 10px;
+            }
+             .message-title{
+                 font-weight: bold;
+             }
+            .message-body{
+                background-color: lightgrey;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            @foreach (var p in Model)
+            {
+                <div class="message-container" style="margin-left: @(p.Offset*20)px;">
+                    <div class="message-title">@p.Title</div>
+                    @if (p.HasBody)
+                    {
+                        <div class="message-body">
+                            @Html.Raw(p.Body)
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </body>
+</html>

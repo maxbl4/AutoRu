@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
@@ -29,7 +30,6 @@ namespace AutoRu.CrawlerSvc
             log = new EventLog(LogName);
             log.Source = LogName;
             log.WriteEntry("Starting");
-            Global.Initialize("mongodb://mx2");
             crawler = new Crawler();
             schedulerThread = new Thread(Scheduler);
             schedulerThread.Start();
@@ -39,12 +39,12 @@ namespace AutoRu.CrawlerSvc
         {
             while (!serviceIsStopping)
             {
-                if ((DateTime.Now - lastCrawl).TotalSeconds > 60)
+                if ((DateTime.Now - lastCrawl).TotalSeconds > 30)
                 {
                     DoCrawlCycle();
                     lastCrawl = DateTime.Now;
                 }
-                Thread.Sleep(5000);
+                Thread.Sleep(2000);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -11,7 +12,7 @@ namespace AutoRu.Common
 {
     public class Crawler
     {
-        const string BaseUri = "http://wwwboards.auto.ru";
+        const string BaseUri = "http://forum.auto.ru";
         
         public void CrawlOnce()
         {
@@ -29,6 +30,11 @@ namespace AutoRu.Common
         {
             var doc = new HtmlDocument();
             doc.LoadHtml(content);
+            var ads = doc.DocumentNode.SelectSingleNode("//center");
+            if (ads != null)
+            {
+                ads.Remove();
+            }
             var topics = doc.DocumentNode.SelectNodes("//ul[li]");
             foreach (var topic in topics)
             {
@@ -105,7 +111,11 @@ namespace AutoRu.Common
 
         string GetPage(string forumId, int number)
         {
-            var uri = string.Format("{0}/{1}/page/{2}/", BaseUri, forumId, number);
+            string uri;
+            if (number <= 1)
+                uri = string.Format("{0}/{1}/", BaseUri, forumId);
+            else
+                uri = string.Format("{0}/{1}/page/{2}/", BaseUri, forumId, number);
             return Download(uri, true);
         }
 
@@ -114,9 +124,25 @@ namespace AutoRu.Common
             uri = uri.ToLowerInvariant();
             var cacheItem = Global.Db.CachedContent.FindOneById(uri);
             if (!avoidCache && cacheItem != null) return cacheItem.Content;
-            var wc = new WebClient();
-            var bytes = wc.DownloadData(uri);
-            var text = Encoding.UTF8.GetString(bytes);
+            var req = WebRequest.CreateHttp(uri);
+            var cc = new CookieContainer();
+            var c = new Cookie("VM_134", "wwwboards5", "/", ".auto.ru");
+            c.Expires = DateTime.Now.AddDays(1).Date;
+            cc.Add(c);
+            c = new Cookie("cookie_test", "1", "/", ".auto.ru");
+            c.Expires = DateTime.Now.AddDays(1).Date;
+            cc.Add(c);
+            req.CookieContainer = cc;
+            var resp = req.GetResponse();
+            string text;
+            using (var sr = new StreamReader(resp.GetResponseStream()))
+            {
+                text = sr.ReadToEnd();
+            }
+            
+            //var wc = new WebClient();
+            //var bytes = wc.DownloadData(uri);
+            //var text = Encoding.UTF8.GetString(bytes);
             cacheItem = new CachedContent { Uri = uri, Timestamp = DateTime.UtcNow, Content = text };
             Global.Db.CachedContent.Save(cacheItem);
             System.Threading.Thread.Sleep(300);

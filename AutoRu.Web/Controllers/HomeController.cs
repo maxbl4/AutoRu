@@ -18,5 +18,17 @@ namespace AutoRu.Web.Controllers
                 .ToList();
             return View(posts);
         }
+
+        public ActionResult Forum(string id)
+        {
+            ViewBag.ForumId = id;
+            var posts = Global.Db.Post.AsQueryable()
+                .Where(x => x.ForumId == id)
+                .OrderByDescending(x => x.TopicId)
+                .ThenBy(x => x.Index)
+                .Take(100)
+                .ToList();
+            return View(posts);
+        }
     }
 }

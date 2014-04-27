@@ -15,11 +15,29 @@ namespace AutoRu
 {
     class Program
     {
-        const string MongoConnectionString = "mongodb://mx2";
         static void Main(string[] args)
         {
-            Global.Initialize(MongoConnectionString);
             new Crawler().CrawlOnce();
+            return;
+            var user = Global.Db.User.AsQueryable().FirstOrDefault(x => x.UserName == "Max");
+            if (user == null)
+            {
+                user = new User{ UserName = "Max" };
+                Global.Db.User.Save(user);
+            }
+
+            var cufoffDate = new DateTime(2014, 03, 26);
+
+            var readPosts = new HashSet<int>(Global.Db.ReadId.AsQueryable()
+                .Where(x => x.Timestamp > cufoffDate)
+                .Select(x => x.PostId));
+            var newPosts = Global.Db.Post.AsQueryable()
+                .Where(x => x.ForumId == "moto" 
+                    && x.Timestamp > cufoffDate
+                    && !readPosts.Contains(x.Id))
+                .OrderByDescending(x => x.TopicId)
+                .ThenBy(x => x.Index)
+                .ToList();
         }
     }
 }

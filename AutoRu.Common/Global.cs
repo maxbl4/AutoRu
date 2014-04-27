@@ -1,17 +1,27 @@
 ﻿using System;
+using System.Configuration;
+using System.Data;
+using System.Linq;
 using AutoRu.Common.Model;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
+using MongoDB.Driver.Linq;
 
 namespace AutoRu.Common
 {
     public class Global
     {
-        public static Database Db { get; private set; }
-
-        public static void Initialize(string connectionString)
+        private static Database db;
+        public static Database Db 
         {
-            Db = new Database(connectionString);
+            get 
+            {
+                if (db == null)
+                {
+                    db = new Database(ConfigurationManager.ConnectionStrings["mongo"].ConnectionString);
+                }
+                return db;
+            }
         }
     }
 
@@ -31,12 +41,23 @@ namespace AutoRu.Common
                 .Descending(x => x.TopicId)
                 .Ascending(x => x.Index)
                 );
+            if (!Forum.AsQueryable().Any())
+            {
+                Forum.Save(new Forum {ForumId = "moto", DoCrawl = true});
+                Forum.Save(new Forum { ForumId = "scooter", DoCrawl = true });
+            }
+
+            User.EnsureIndex(IndexKeys<User>.Ascending(x => x.UserName));
+            ReadId.EnsureIndex(IndexKeys<ReadId>.Ascending(x => x.UserId).Ascending(x => x.PostId));
+            ReadId.EnsureIndex(IndexKeys<ReadId>.Ascending(x => x.UserId).Descending(x => x.Timestamp));
         }
 
         public MongoCollection<CachedContent> CachedContent { get { return GetCollection<CachedContent>(); } }
         public MongoCollection<DownloadTask> DownloadTask { get { return GetCollection<DownloadTask>(); } }
         public MongoCollection<Post> Post { get { return GetCollection<Post>(); } }
         public MongoCollection<Forum> Forum { get { return GetCollection<Forum>(); } }
+        public MongoCollection<User> User { get { return GetCollection<User>(); } }
+        public MongoCollection<ReadId> ReadId { get { return GetCollection<ReadId>(); } }
 
         private MongoCollection<T> GetCollection<T>()
         {
